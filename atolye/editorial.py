@@ -268,6 +268,9 @@ def package(args: argparse.Namespace) -> None:
     captions = _optional_file(job, "outputs/master.srt")
     manifest = _optional_file(job, "publish.json")
     metadata = read_json(manifest) if manifest else {}
+    language = _text(metadata.get("language", "tr"), "Altyazı dili").lower()
+    if not re.fullmatch(r"[a-z]{2,3}(?:-[a-z0-9]{2,8})*", language):
+        raise AtolyeError("Altyazı dili tr, en veya en-us gibi bir dil etiketi olmalı.")
     title = _text(metadata.get("title", job.resolve().name), "Başlık")
     description = _text(metadata.get("description", ""), "Açıklama", multiline=True, empty=True)
     sources = _sources(job)
@@ -275,7 +278,7 @@ def package(args: argparse.Namespace) -> None:
         staging = Path(directory) / "ready"
         staging.mkdir()
         staged_master = staging / "master.mp4"
-        staged_captions = staging / "captions.tr.srt" if captions else None
+        staged_captions = staging / f"captions.{language}.srt" if captions else None
         shutil.copyfile(master, staged_master)
         if captions:
             shutil.copyfile(captions, staged_captions)
@@ -284,6 +287,8 @@ def package(args: argparse.Namespace) -> None:
         english = _optional_file(job, "transcript/final.en.srt")
         if english:
             staged_english = staging / "captions.en.srt"
+            if staged_english == staged_captions:
+                raise AtolyeError("İngilizce altyazı iki kez verilmiş. Ana SRT veya final.en.srt dosyasından birini seç.")
             shutil.copyfile(english, staged_english)
             verify_video(staged_master, staged_english)
         thumbnail = _optional_file(job, "assets/thumbnail.png")

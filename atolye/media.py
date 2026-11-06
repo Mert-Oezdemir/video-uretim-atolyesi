@@ -282,6 +282,48 @@ def _even_dimensions(track: dict, preview: bool) -> tuple[int, int]:
     return max(2, int(width * scale) // 2 * 2), max(2, int(height * scale) // 2 * 2)
 
 
+def prepare_video(job: Path, audio: str, video: str | None, aspect: str) -> Path:
+    narration = job_path(job, audio, must_exist=True)
+    target = job_path(job, "raw/input.mp4")
+    if target.exists():
+        raise AtolyeError("raw/input.mp4 zaten mevcut. Yeni bir iş klasörü kullan.")
+    audio_data = probe(narration)
+    voice = stream(audio_data, "audio")
+    if voice is None:
+        raise AtolyeError("Anlatım dosyasında ses akışı yok.")
+    duration = timeline_duration(audio_data, voice)
+    if duration <= 0:
+        raise AtolyeError("Anlatım süresi okunamadı.")
+    ffmpeg = require_tool("ffmpeg")
+    width, height = (1280, 720) if aspect == "16:9" else (720, 1280)
+    source = job_path(job, video, must_exist=True) if video else None
+    if source:
+        track = stream(probe(source), "video")
+        if track is None:
+            raise AtolyeError("Görüntü dosyasında video akışı yok.")
+        inputs = _ffmpeg_input(ffmpeg, source)
+        video_map = f"0:{track['index']}"
+    else:
+        inputs = [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error",
+                  "-f", "lavfi", "-i", f"color=c=0x14232D:s={width}x{height}:r=30"]
+        video_map = "0:v:0"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix=".prepare-", dir=target.parent) as directory:
+        draft = Path(directory) / "input.mp4"
+        run([
+            *inputs, "-protocol_whitelist", "file,pipe", "-i", narration,
+            "-map", video_map, "-map", f"1:{voice['index']}",
+            "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
+                   f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,tpad=stop_mode=clone:stop_duration={duration:.6f}",
+            "-t", f"{duration:.6f}", *video_encoding(ffmpeg), draft,
+        ])
+        verify_video(draft)
+        if target.exists():
+            raise AtolyeError("raw/input.mp4 işlem sırasında oluşturuldu. Yeni bir iş klasörü kullan.")
+        draft.rename(target)
+    return target
+
+
 def cut_video(job: Path, relative: str, plan: str | None, auto: bool) -> Path:
     source = job_path(job, relative, must_exist=True)
     target = job_path(job, "cut/locked.mp4")
@@ -312,7 +354,14 @@ def cut_video(job: Path, relative: str, plan: str | None, auto: bool) -> Path:
         run([*arguments, *video_encoding(ffmpeg), draft])
         if auto:
             tightened = staging / "tightened.mp4"
-            run([require_tool("auto-editor"), draft, "--margin", "0.3s", "--no-open", "-o", tightened])
+            try:
+                run([require_tool("auto-editor"), draft, "--margin", "0.3s", "--no-open", "-o", tightened])
+            except AtolyeError as error:
+                if "Timeline is empty" not in str(error):
+                    raise
+                raise AtolyeError(
+                    "Auto-Editor duyulabilir bir bölüm bulamadı. Ses seviyesini kontrol et veya --auto olmadan kes."
+                ) from error
             draft = tightened
         verify_video(draft)
         draft.replace(target)

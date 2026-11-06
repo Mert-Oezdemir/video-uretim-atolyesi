@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from .media import (
-    AtolyeError, cut_video, job_path, render_video, transcribe, verify_video, write_json, write_text,
+    AtolyeError, cut_video, job_path, prepare_video, render_video, transcribe, verify_video, write_json, write_text,
 )
 
 
@@ -45,6 +45,10 @@ def _cut(args) -> None:
     print(cut_video(args.job, args.input, args.plan, args.auto))
 
 
+def _prepare(args) -> None:
+    print(prepare_video(args.job, args.audio, args.video, args.aspect))
+
+
 def _render(args) -> None:
     print(render_video(
         args.job, args.input, args.overlays, args.captions, preview=args.preview, burn_in=args.burn_in,
@@ -69,6 +73,11 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="Yerel araçları kontrol et").set_defaults(func=_doctor)
     _add_job(commands, "init", _init, "İş klasörünü hazırla")
+
+    prepare = _add_job(commands, "prepare", _prepare, "Ayrı anlatım ve görüntüden kayıt tabanı oluştur")
+    prepare.add_argument("--audio", required=True, help="İş klasörüne göre anlatım kaydı")
+    prepare.add_argument("--video", help="İş klasörüne göre ekran veya tarayıcı kaydı")
+    prepare.add_argument("--aspect", choices=("16:9", "9:16"), default="16:9")
 
     transcript = _add_job(commands, "transcribe", _transcribe, "Yerel Whisper ile JSON ve SRT üret")
     transcript.add_argument("--input", help="İş klasörüne göre ses veya video")

@@ -29,10 +29,13 @@ Bir iş klasörü oluştur. Cap Studio'dan çıkardığın MP4'ü iş klasörün
 python -m atolye init jobs/ilk-video
 ```
 
-Whisper için ayrı bir Python ortamı kullanabilirsin. Gerçek transkript komutu bu ortamda çalıştırılmalı. İlk kullanımda model indirilir. Uyumlu PyTorch kurulumu için [Whisper belgelerine](https://github.com/openai/whisper#setup) bak.
+Sadece ses kaydettiysen `raw/voice.wav` dosyasını iş klasörüne koy. `python -m atolye prepare jobs/ilk-video --audio raw/voice.wav --aspect 9:16` komutu anlatım süresinde bir dikey görüntü tabanı oluşturur. Yatay taban için `--aspect 16:9` kullan. Playwright gibi sessiz bir ekran kaydını eklemek için `--video raw/browser/demo.webm` ver. Anlatım sıfırıncı saniyede başlar. Görüntü daha kısa kalırsa son karesi uzatılır. Ardından grafikleri ayrı katmanlar olarak ekleyebilirsin.
+
+Whisper için ayrı bir Python ortamı kullanabilirsin. Gerçek transkript komutu bu ortamda çalıştırılmalı. İlk kullanımda model indirilir. Uyumlu PyTorch kurulumu için [Whisper belgelerine](https://github.com/openai/whisper#setup) bak. Python 3.10 ve üzerindeki güncel pip, sistem sertifika deposunu da kullanır.
 
 ```powershell
 python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install openai-whisper
 .\.venv\Scripts\python.exe -m atolye transcribe jobs/ilk-video --input raw/input.mp4 --name raw --language tr --model base
 ```
@@ -100,6 +103,12 @@ python -m atolye package jobs/ilk-video
 ```
 
 `outputs/publish/` altında ana MP4, başlık, açıklama, kaynak listesi ve doğrulama raporu oluşur. Final render'da `--captions` ile üretilen `outputs/master.srt`, `captions.tr.srt` adıyla eklenir. İngilizce altyazı ve kapak eklemek için iş klasörüne `transcript/final.en.srt` ve `assets/thumbnail.png` koy. Yeni bir paket sürümü için `--name publish-v2` kullan. YouTube Studio'ya yüklemeden önce dosyaları gözden geçir.
+
+Ana altyazı Türkçe dışında bir dildeyse `publish.json` içine `"language": "en"` gibi bir dil etiketi ekle. Bu etiket, paketlenen SRT dosyasının adına yansır.
+
+## Test
+
+`python -m unittest discover -s tests -v` komutu sentetik kayıt, dikey anlatım tabanı, altyazı doğrulaması ve yayın paketini sınar. Auto-Editor PATH üzerinde varsa sessizlik kesimi testi de çalışır.
 
 ## Dosyalar ve araçlar
 
