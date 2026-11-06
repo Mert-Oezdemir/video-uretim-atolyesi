@@ -1,0 +1,26 @@
+# Kayıtlar, render'lar, geçici çalışma alanları
+/jobs/
+/.local/
+/.work/
+/.venv/
+.hyperframes/
+node_modules/
+__pycache__/
+*.py[cod]
+
+# Yerel kimlik bilgileri
+.env
+.env.*
+!.env.example
+
+# Medya ve model ağırlıkları
+*.cap
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.wav
+*.mp3
+*.m4a
+*.pt
+*.safetensors

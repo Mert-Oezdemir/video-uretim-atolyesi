@@ -1,0 +1,11 @@
+{
+  "type": "source-card",
+  "duration": 4,
+  "eyebrow": "BELGE",
+  "title": "Tarayıcı kaydı",
+  "source": {
+    "name": "Playwright video kaydı belgeleri",
+    "url": "https://playwright.dev/docs/videos",
+    "note": "Tarayıcı bağlamı kapanınca video dosyası yazılır."
+  }
+}

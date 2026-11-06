@@ -1,0 +1,9 @@
+{
+  "type": "before-after",
+  "duration": 4,
+  "eyebrow": "ÖRNEK ÖLÇÜM",
+  "title": "Bir sahnenin iki sürümü",
+  "subtitle": "Örnek değerler, gerçek bir performans ölçümü değildir.",
+  "before": {"value": "12 sn", "detail": "Başlangıç sürümü"},
+  "after": {"value": "7 sn", "detail": "Güncellenen sürüm"}
+}

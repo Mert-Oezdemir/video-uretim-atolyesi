@@ -1,0 +1,12 @@
+{
+  "type": "architecture",
+  "duration": 5,
+  "eyebrow": "İŞ AKIŞI",
+  "title": "Kayıttan önizlemeye",
+  "steps": [
+    {"label": "Kayıt", "detail": "Ham medya ayrı saklanır."},
+    {"label": "Kesim", "detail": "Zaman kodları incelenir."},
+    {"label": "Grafik", "detail": "Onaylı süreye yerleştirilir."},
+    {"label": "Önizleme", "detail": "Ses ve görüntü birlikte kontrol edilir."}
+  ]
+}

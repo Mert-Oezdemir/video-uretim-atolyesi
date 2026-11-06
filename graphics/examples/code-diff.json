@@ -1,0 +1,14 @@
+{
+  "type": "code-diff",
+  "duration": 5,
+  "eyebrow": "UYGULAMA",
+  "title": "Kurguyu kaynaktan ayır",
+  "filename": "proje.json",
+  "lines": [
+    {"kind": "context", "text": "{"},
+    {"kind": "remove", "text": "  \"video\": \"input.mp4\""},
+    {"kind": "add", "text": "  \"source\": \"raw/input.mp4\","},
+    {"kind": "add", "text": "  \"approved\": \"cut/locked.mp4\""},
+    {"kind": "context", "text": "}"}
+  ]
+}

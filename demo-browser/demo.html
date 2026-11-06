@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<title>Atölye tarayıcı demosu</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #131e28; color: #f5f7f8; font: 22px/1.4 "Segoe UI", Arial, sans-serif; }
+  header { display: flex; justify-content: space-between; border-bottom: 1px solid #344752; padding: 22px 88px; }
+  main { max-width: 1100px; margin: 55px auto; }
+  .label { color: #c0f4be; letter-spacing: .12em; font-size: 15px; font-weight: bold; }
+  h1 { margin: 8px 0 12px; font-size: 56px; line-height: 1.08; }
+  p { margin: 0; }
+  .intro { color: #c8d6df; }
+  section { margin-top: 36px; padding: 32px; border: 1px solid #405967; border-radius: 12px; background: #1b2a36; }
+  section p { margin: 10px 0 28px; }
+  button { padding: 15px 22px; border: 1px solid #a9dca8; border-radius: 8px; background: #c0f4be; color: #112a24; font: bold 20px "Segoe UI", Arial, sans-serif; }
+  button:disabled { opacity: .42; }
+</style>
+<header><strong>Üretim Atölyesi</strong><span class="label">YEREL DEMO</span></header>
+<main>
+  <p class="label">ÖRNEK PROJE</p>
+  <h1>Önizlemeden kurgu onayına</h1>
+  <p class="intro">Bu arayüz yalnızca örnek kayıt için hazırlanmıştır.</p>
+  <section aria-label="Kurgu durumu">
+    <span class="label">DURUM</span>
+    <p role="status"><strong id="status">Taslak bekliyor</strong></p>
+    <button type="button" id="prepare">Önizlemeyi hazırla</button>
+    <button type="button" id="approve" disabled>Önizlemeyi onayla</button>
+  </section>
+</main>
+<script>
+  const statusText = document.querySelector('#status');
+  const prepare = document.querySelector('#prepare');
+  const approve = document.querySelector('#approve');
+  prepare.addEventListener('click', () => {
+    statusText.textContent = 'Önizleme hazır';
+    prepare.disabled = true;
+    approve.disabled = false;
+  });
+  approve.addEventListener('click', () => {
+    statusText.textContent = 'Kurgu onaylandı';
+    approve.disabled = true;
+  });
+</script>
+</html>
