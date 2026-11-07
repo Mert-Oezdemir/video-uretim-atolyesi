@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 from .media import (
-    AtolyeError, cut_video, job_path, prepare_video, render_video, transcribe, verify_video, write_json, write_text,
+    AtolyeError, cut_video, job_path, prepare_video, render_video, require_tool, transcribe,
+    verify_video, video_encoding, write_json, write_text,
 )
 
 
@@ -24,7 +25,7 @@ def _init(args) -> None:
     print(args.job.resolve())
 
 
-def _doctor(_args) -> None:
+def _doctor(args) -> None:
     required = ("ffmpeg", "ffprobe")
     for tool in (*required, "auto-editor", "mlx_whisper", "node", "npx", "codex", "claude"):
         status = shutil.which(tool) or ("eksik (gerekli)" if tool in required else "yok (isteğe bağlı)")
@@ -34,6 +35,9 @@ def _doctor(_args) -> None:
     print(f"Python: {sys.version.split()[0]}")
     if any(shutil.which(tool) is None for tool in required):
         raise AtolyeError("FFmpeg ve ffprobe PATH üzerinde bulunmalı.")
+    video_encoding(require_tool("ffmpeg"))
+    if args.full and not available:
+        raise AtolyeError("Tam yerel üretim için bu Python ortamına openai-whisper kur.")
 
 
 def _transcribe(args) -> None:
@@ -62,14 +66,26 @@ def _verify(args) -> None:
 
 
 def _run(args) -> None:
+    from .workflow import job_lock
+    with job_lock(args.job):
+        _run_locked(args)
+
+
+def _run_locked(args) -> None:
+    from .workflow import preflight, require_preview, save_preview
     if not args.plan and not args.keep_all:
         raise AtolyeError("Onaylı --plan dosyasını veya kaydın tamamı için --keep-all seçeneğini belirt.")
     if args.final and job_path(args.job, f"outputs/{args.package_name}").exists():
         raise AtolyeError("Yayın paketi mevcut. --package-name publish-v2 gibi yeni bir sürüm adı seç.")
-    print("1/4 Onaylı kesim hazırlanıyor.", flush=True)
-    cut_video(args.job, args.input, args.plan, args.auto)
-    print("2/4 Son kurgu transkripti hazırlanıyor.", flush=True)
-    transcribe(args.job, "cut/locked.mp4", args.backend, "final", args.language, args.model)
+    snapshot = preflight(args)
+    if args.final:
+        require_preview(args, snapshot)
+        print("1/4 İncelenen önizlemenin kesim ve altyazısı doğrulandı.", flush=True)
+    else:
+        print("1/4 Onaylı kesim hazırlanıyor.", flush=True)
+        cut_video(args.job, args.input, args.plan, args.auto)
+        print("2/4 Son kurgu transkripti hazırlanıyor.", flush=True)
+        transcribe(args.job, "cut/locked.mp4", args.backend, "final", args.language, args.model)
     print("3/4 MP4 hazırlanıyor.", flush=True)
     render_video(
         args.job, "cut/locked.mp4", args.overlays, "transcript/final.srt",
@@ -80,6 +96,7 @@ def _run(args) -> None:
         print("4/4 Yayın paketi hazırlanıyor.", flush=True)
         package(argparse.Namespace(job=args.job, name=args.package_name, language=args.language))
     else:
+        save_preview(args, snapshot)
         print("4/4 Önizleme hazır. Finalden önce outputs/preview.mp4 dosyasını incele.", flush=True)
 
 
@@ -93,7 +110,9 @@ def _add_job(subparsers, name, handler, help_text):
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m atolye", description="Yerel video üretim araçları.")
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("doctor", help="Yerel araçları kontrol et").set_defaults(func=_doctor)
+    doctor = commands.add_parser("doctor", help="Yerel araçları kontrol et")
+    doctor.add_argument("--full", action="store_true", help="Whisper ve H.264 kodlayıcısını da zorunlu tut")
+    doctor.set_defaults(func=_doctor)
     _add_job(commands, "init", _init, "İş klasörünü hazırla")
 
     workflow = _add_job(commands, "run", _run, "Onaylı kesimden transkript, önizleme veya yayın paketi üret")

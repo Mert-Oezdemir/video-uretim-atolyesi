@@ -31,7 +31,9 @@ Demo yerel olarak sentetik görüntü, test tonu ve örnek altyazı üretir. FFm
 
 Kesim planını inceledikten sonra `python -m atolye run jobs/ilk-video --plan cut/cuts.json --model small --burn-in` komutu kesimi uygular, yerel Whisper ile son altyazıyı üretir ve önizlemeyi hazırlar. Kaydın tamamını korumak için `--plan` yerine `--keep-all` kullan. Sessizlik kesmek için `--auto`, onaylanmış grafik planı için `--overlays graphics/overlays.json` ekle.
 
-Önizlemeyi inceledikten sonra aynı komuta `--final` ekleyerek ana MP4 ve yayın paketini üret. Yeni teslim için `--package-name publish-v2` seç. `--language` hem transkripti hem paketlenen ana altyazının dil etiketini belirler. Ajan planı için önce ham transkripti üretip `plan --engine codex` veya `plan --engine claude` kullanabilirsin. Aday kesimi izleyip onayladıktan sonra `--plan plans/cut.candidate.json` ile uygula.
+Önizlemeyi inceledikten sonra aynı komuta `--final` ekleyerek ana MP4 ve yayın paketini üret. Final, önizlemedeki kilitli kesim ve altyazıyı yeniden kullanır. Girdilerin, grafiklerin, ayarların ve önizleme dosyalarının SHA-256 özetleri karşılaştırılır. Bir değişiklik varsa yeni önizleme gerekir. Yeni teslim için `--package-name publish-v2` seç. `--language` hem transkripti hem paketlenen ana altyazının dil etiketini belirler. Ajan planı için önce ham transkripti üretip `plan --engine codex` veya `plan --engine claude` kullanabilirsin. Aday kesimi izleyip onayladıktan sonra `--plan plans/cut.candidate.json` ile uygula.
+
+`doctor --full`, tam yerel üretim için Whisper kurulumunu ve H.264 kodlayıcısını kontrol eder. Aynı işte iki run işlemi eşzamanlı başlatılırsa ikincisi reddedilir. İşlem işletim sistemi tarafından sonlandırılmışsa, çalışan süreç kalmadığını doğruladıktan sonra iş klasöründeki `.workflow.lock` dosyasını kaldırarak devam edebilirsin. [Kabul ölçütleri](docs/kabul-olcutleri.md) son denetimin kapsamını tanımlar.
 
 ## Kendi videon
 

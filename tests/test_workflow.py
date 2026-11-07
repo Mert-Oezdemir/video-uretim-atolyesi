@@ -6,12 +6,25 @@ from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
 import unittest
+from argparse import Namespace
 
 from atolye.__main__ import main
 from atolye.media import AtolyeError, job_path, read_json, require_tool, run, validate_srt, verify_video
 
 
 class ValidationTests(unittest.TestCase):
+    def test_concurrent_workflow_is_rejected_and_lock_is_released(self):
+        from atolye.workflow import job_lock
+        with TemporaryDirectory() as directory:
+            job = Path(directory)
+            with job_lock(job):
+                with self.assertRaises(AtolyeError):
+                    with job_lock(job):
+                        self.fail("İkinci üretim kilit alamamalı.")
+            with job_lock(job):
+                self.assertTrue((job / ".workflow.lock").is_file())
+            self.assertFalse((job / ".workflow.lock").exists())
+
     def test_relative_job_paths_cannot_leave_job(self):
         with TemporaryDirectory() as directory:
             with self.assertRaises(AtolyeError):
@@ -66,6 +79,27 @@ class OfflineWorkflowTest(unittest.TestCase):
             self.run_cli("package", str(job), "--name", "publish-en", "--language", "en")
             self.assertTrue((outputs / "publish-en" / "captions.en.srt").is_file())
             self.assertFalse((outputs / "publish-en" / "captions.tr.srt").exists())
+            from atolye.workflow import inputs, require_preview, save_preview
+            args = Namespace(
+                job=job, input="raw/input.mp4", plan="cut/cuts.json", keep_all=False,
+                auto=False, backend="whisper", language="tr", model="tiny",
+                overlays="graphics/overlays.json", burn_in=False,
+            )
+            snapshot = inputs(args)
+            with self.assertRaises(AtolyeError):
+                require_preview(args, snapshot)
+            save_preview(args, snapshot)
+            require_preview(args, snapshot)
+            plan = job / "cut/cuts.json"
+            original = plan.read_bytes()
+            plan.write_bytes(original + b" ")
+            with self.assertRaises(AtolyeError):
+                require_preview(args, inputs(args))
+            plan.write_bytes(original)
+            subtitle = job / "transcript/final.srt"
+            subtitle.write_text(subtitle.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+            with self.assertRaises(AtolyeError):
+                require_preview(args, snapshot)
 
     def test_voice_only_can_create_vertical_source(self):
         with TemporaryDirectory() as directory:
