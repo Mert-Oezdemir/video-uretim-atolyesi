@@ -27,6 +27,12 @@ python -m atolye demo jobs/demo
 
 Demo yerel olarak sentetik görüntü, test tonu ve örnek altyazı üretir. FFmpeg ile kesim, grafik katmanı, önizleme ve ana MP4 oluşturur. Yayın dosyalarını `jobs/demo/outputs/publish/` altında bulabilirsin. Demo için gerçek kayıt, konuşma modeli, Node.js veya API anahtarı gerekmez. Tekrar çalıştırırken henüz oluşturulmamış bir klasör adı seç.
 
+## Tek komutla üretim
+
+Kesim planını inceledikten sonra `python -m atolye run jobs/ilk-video --plan cut/cuts.json --model small --burn-in` komutu kesimi uygular, yerel Whisper ile son altyazıyı üretir ve önizlemeyi hazırlar. Kaydın tamamını korumak için `--plan` yerine `--keep-all` kullan. Sessizlik kesmek için `--auto`, onaylanmış grafik planı için `--overlays graphics/overlays.json` ekle.
+
+Önizlemeyi inceledikten sonra aynı komuta `--final` ekleyerek ana MP4 ve yayın paketini üret. Yeni teslim için `--package-name publish-v2` seç. `--language` hem transkripti hem paketlenen ana altyazının dil etiketini belirler. Ajan planı için önce ham transkripti üretip `plan --engine codex` veya `plan --engine claude` kullanabilirsin. Aday kesimi izleyip onayladıktan sonra `--plan plans/cut.candidate.json` ile uygula.
+
 ## Kendi videon
 
 ### 1. Kayıt ve ham transkript
@@ -115,6 +121,8 @@ python -m atolye package jobs/ilk-video
 Ana altyazı Türkçe dışında bir dildeyse `publish.json` içine `"language": "en"` gibi bir dil etiketi ekle. Bu etiket, paketlenen SRT dosyasının adına yansır.
 
 ## Test
+
+Windows'ta yerel üretim ve iki ajan bağlantısının gerçek çalıştırma sonuçları [doğrulama kaydında](docs/dogrulama.md) bulunur. Türkçe konuşma Whisper small ile, kesim ve sahne planları Codex ve Claude Code ile doğrulandı.
 
 `python -m unittest discover -s tests -v` komutu sentetik kayıt, dikey anlatım tabanı, altyazı doğrulaması ve yayın paketini sınar. Auto-Editor PATH üzerinde varsa sessizlik kesimi testi de çalışır.
 

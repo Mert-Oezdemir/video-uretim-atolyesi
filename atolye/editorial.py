@@ -165,12 +165,19 @@ def _run_planner(engine: str, prompt: str, schema: dict) -> dict:
                 "--output-schema", "schema.json", "-o", "result.json", "-",
             ]
         else:
-            command = [executable, "-p", "--bare", "--tools", "", "--output-format", "json"]
+            command = [executable, "-p", "--tools", "", "--output-format", "json"]
         result = subprocess.run(
             command, cwd=scratch, input=prompt, encoding="utf-8", errors="replace",
             capture_output=True, timeout=600, check=False,
         )
         if result.returncode:
+            if engine == "claude":
+                try:
+                    error_envelope = json.loads(result.stdout)
+                except json.JSONDecodeError:
+                    error_envelope = {}
+                if isinstance(error_envelope, dict) and "not logged in" in str(error_envelope.get("result", "")).lower():
+                    raise AtolyeError("Claude Code oturumu bulunamadı. claude auth login ile bağlan.")
             raise AtolyeError(f"{engine} plan üretmeyi tamamlayamadı (kod {result.returncode}).")
         if engine == "codex":
             return read_json(scratch / "result.json")
@@ -268,7 +275,7 @@ def package(args: argparse.Namespace) -> None:
     captions = _optional_file(job, "outputs/master.srt")
     manifest = _optional_file(job, "publish.json")
     metadata = read_json(manifest) if manifest else {}
-    language = _text(metadata.get("language", "tr"), "Altyazı dili").lower()
+    language = _text(getattr(args, "language", None) or metadata.get("language", "tr"), "Altyazı dili").lower()
     if not re.fullmatch(r"[a-z]{2,3}(?:-[a-z0-9]{2,8})*", language):
         raise AtolyeError("Altyazı dili tr, en veya en-us gibi bir dil etiketi olmalı.")
     title = _text(metadata.get("title", job.resolve().name), "Başlık")
@@ -381,6 +388,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     command = subparsers.add_parser("package", help="Yerel yayın paketi hazırla.")
     command.add_argument("job", type=Path)
     command.add_argument("--name", default="publish")
+    command.add_argument("--language", help="Ana altyazının dil etiketi")
     command.set_defaults(func=package)
 
     command = subparsers.add_parser("demo", help="Sentetik kayıtla çevrimdışı örnek üret.")

@@ -63,6 +63,9 @@ class OfflineWorkflowTest(unittest.TestCase):
             self.assertIn("https://ffmpeg.org/", (package / "description.txt").read_text(encoding="utf-8"))
             self.assertTrue((job / "plans" / "cut.prompt.md").is_file())
             self.assertTrue((job / "plans" / "storyboard.prompt.md").is_file())
+            self.run_cli("package", str(job), "--name", "publish-en", "--language", "en")
+            self.assertTrue((outputs / "publish-en" / "captions.en.srt").is_file())
+            self.assertFalse((outputs / "publish-en" / "captions.tr.srt").exists())
 
     def test_voice_only_can_create_vertical_source(self):
         with TemporaryDirectory() as directory:

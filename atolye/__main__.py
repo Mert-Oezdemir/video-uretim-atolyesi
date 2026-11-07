@@ -61,6 +61,28 @@ def _verify(args) -> None:
     print(json.dumps(verify_video(source, captions), ensure_ascii=False, indent=2))
 
 
+def _run(args) -> None:
+    if not args.plan and not args.keep_all:
+        raise AtolyeError("Onaylı --plan dosyasını veya kaydın tamamı için --keep-all seçeneğini belirt.")
+    if args.final and job_path(args.job, f"outputs/{args.package_name}").exists():
+        raise AtolyeError("Yayın paketi mevcut. --package-name publish-v2 gibi yeni bir sürüm adı seç.")
+    print("1/4 Onaylı kesim hazırlanıyor.", flush=True)
+    cut_video(args.job, args.input, args.plan, args.auto)
+    print("2/4 Son kurgu transkripti hazırlanıyor.", flush=True)
+    transcribe(args.job, "cut/locked.mp4", args.backend, "final", args.language, args.model)
+    print("3/4 MP4 hazırlanıyor.", flush=True)
+    render_video(
+        args.job, "cut/locked.mp4", args.overlays, "transcript/final.srt",
+        preview=not args.final, burn_in=args.burn_in,
+    )
+    if args.final:
+        from .editorial import package
+        print("4/4 Yayın paketi hazırlanıyor.", flush=True)
+        package(argparse.Namespace(job=args.job, name=args.package_name, language=args.language))
+    else:
+        print("4/4 Önizleme hazır. Finalden önce outputs/preview.mp4 dosyasını incele.", flush=True)
+
+
 def _add_job(subparsers, name, handler, help_text):
     parser = subparsers.add_parser(name, help=help_text)
     parser.add_argument("job", type=Path, help="Video işinin yerel klasörü")
@@ -73,6 +95,20 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="Yerel araçları kontrol et").set_defaults(func=_doctor)
     _add_job(commands, "init", _init, "İş klasörünü hazırla")
+
+    workflow = _add_job(commands, "run", _run, "Onaylı kesimden transkript, önizleme veya yayın paketi üret")
+    workflow.add_argument("--input", default="raw/input.mp4")
+    choice = workflow.add_mutually_exclusive_group(required=True)
+    choice.add_argument("--plan", help="Onaylı keep aralıkları dosyası")
+    choice.add_argument("--keep-all", action="store_true")
+    workflow.add_argument("--auto", action="store_true")
+    workflow.add_argument("--backend", choices=("whisper", "mlx-whisper"), default="whisper")
+    workflow.add_argument("--language", default="tr")
+    workflow.add_argument("--model")
+    workflow.add_argument("--overlays")
+    workflow.add_argument("--burn-in", action="store_true")
+    workflow.add_argument("--final", action="store_true", help="Önizleme incelendikten sonra final ve paket üret")
+    workflow.add_argument("--package-name", default="publish")
 
     prepare = _add_job(commands, "prepare", _prepare, "Ayrı anlatım ve görüntüden kayıt tabanı oluştur")
     prepare.add_argument("--audio", required=True, help="İş klasörüne göre anlatım kaydı")

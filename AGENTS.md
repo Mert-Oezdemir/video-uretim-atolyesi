@@ -1,5 +1,7 @@
 # Depoda çalışan ajanlar
 
+Yerel tek ajan akışı şu sırayı izler. Önce `doctor` ve `init` çalıştır. Ham kayıt yalnızca ses içeriyorsa veya görüntü ve anlatım ayrıysa `prepare` kullan. Ham transkripti oluştur, `plan --engine codex` veya `plan --engine claude` ile aday kesim hazırla. Kullanıcı aday kesimi onaylayınca `run JOB --plan plans/cut.candidate.json` ile önizleme üret. Gerekli grafik ve ses revizyonlarını uygula. Kullanıcı önizlemeyi onayladığında aynı ayarlarla `--final` ekleyip yayın paketini üret. Kaydın tamamı korunacaksa `--keep-all` seç. `run --language` teslimdeki ana altyazının dilini de belirler.
+
 - `README.md` içindeki komutları depo kökünden çalıştır. CLI'daki `JOB`, iş klasörünü gösterir. `--input`, `--plan`, `--overlays` ve `--captions` yolları o iş klasörüne göredir.
 - Ham kaydı ve ham transkripti koru. Kesim adaylarını kaynak zamanına göre öner. Onaylı kesimi değiştiren bir revizyondan sonra altyazıyı yeniden üret veya aynı kesim planıyla yeniden zamanla.
 - Altyazı, sahne grafiği ve bölüm zamanlarını `cut/locked.mp4` üzerinden hesapla. Eksik kaynak veya zaman kodu varsa bunu belirt. Ürün sürümü, sayı, ölçüm ya da kaynak uydurma.
