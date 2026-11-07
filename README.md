@@ -4,6 +4,14 @@ Windows ve Türkçe ekran anlatımları için yerel video üretim başlangıç k
 
 Çekirdek Python ve FFmpeg ile çalışır. Cap veya Playwright giriş medyasını sağlar. Codex ya da Claude Code plan önerebilir. HyperFrames şablonları grafikleri üretir. Topview, Obsidian ve YouTube gibi servisler [isteğe bağlı entegrasyonlar](docs/entegrasyonlar.md) olarak belgelenir.
 
+## İzlenebilir demo
+
+[18 saniyelik MP4 demoyu izle veya indir](https://github.com/Mert-Oezdemir/video-uretim-atolyesi/releases/download/v0.1.0/video-uretim-atolyesi-demo.mp4) · [Türkçe SRT](https://github.com/Mert-Oezdemir/video-uretim-atolyesi/releases/download/v0.1.0/video-uretim-atolyesi-demo.srt)
+
+![Demonun dört sahnesi](docs/media/demo-preview.png)
+
+Örnek tarayıcı kaydından iki saniyelik duraklama çıkarılır. HyperFrames kartı ve Türkçe altyazı eklenerek 1280 × 720, 30 fps MP4 üretilir. Demo sessizdir. Karşılaştırma kartındaki değerler örnektir.
+
 ## İlk deneme
 
 Python 3.10 veya üzeri ve `PATH` üzerinde `ffmpeg` ile `ffprobe` gerekir. FFmpeg dağıtımında `libx264` veya `libopenh264` kodlayıcısı olmalı. Kurulumdan sonra yeni bir PowerShell aç. [Python](https://www.python.org/downloads/windows/) · [FFmpeg Windows indirme bağlantıları](https://ffmpeg.org/download.html#build-windows)
