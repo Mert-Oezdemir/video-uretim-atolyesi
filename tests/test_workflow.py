@@ -50,6 +50,18 @@ class ValidationTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "FFmpeg ve ffprobe gerekli")
 class OfflineWorkflowTest(unittest.TestCase):
+    def test_video_with_short_audio_is_rejected(self):
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "mismatch.mp4"
+            run([
+                require_tool("ffmpeg"), "-v", "error",
+                "-f", "lavfi", "-i", "color=s=160x90:r=24:d=3",
+                "-f", "lavfi", "-i", "sine=duration=1",
+                "-c:v", "mpeg4", "-c:a", "aac", source,
+            ])
+            with self.assertRaisesRegex(AtolyeError, "zaman aralıkları"):
+                verify_video(source)
+
     def run_cli(self, *args):
         output = StringIO()
         with redirect_stdout(output), redirect_stderr(output):

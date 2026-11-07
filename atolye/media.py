@@ -142,6 +142,14 @@ def validate_srt(path: Path, duration: float) -> int:
 def verify_video(path: Path, captions: Path | None = None) -> dict:
     data, video, audio = video_tracks(path)
     duration = timeline_duration(data, video)
+    audio_duration = timeline_duration(data, audio)
+    start_delta = abs(media_number(video.get("start_time")) - media_number(audio.get("start_time")))
+    if abs(duration - audio_duration) > 0.25 or start_delta > 0.25:
+        raise AtolyeError(
+            "Ses ve görüntü zaman aralıkları uyuşmuyor. "
+            f"Görüntü {duration:.3f} sn, ses {audio_duration:.3f} sn, "
+            f"başlangıç farkı {start_delta:.3f} sn. İzin verilen fark 0.250 sn."
+        )
     return {
         "path": str(path),
         "duration": duration,
@@ -150,7 +158,8 @@ def verify_video(path: Path, captions: Path | None = None) -> dict:
         "height": video.get("height"),
         "fps": video.get("avg_frame_rate"),
         "audio_codec": audio.get("codec_name"),
-        "audio_duration": timeline_duration(data, audio),
+        "audio_duration": audio_duration,
+        "av_start_delta": start_delta,
         "captions": validate_srt(captions, duration) if captions is not None else None,
     }
 
