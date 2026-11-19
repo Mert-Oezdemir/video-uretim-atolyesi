@@ -1,0 +1,6 @@
+vendor/
+outputs/
+__pycache__/
+*.blend1
+*.blend2
+.DS_Store
