@@ -9,3 +9,15 @@ Yerel tek ajan akışı şu sırayı izler. Önce `doctor` ve `init` çalıştı
 - Önce önizleme üret. Kullanıcıdan kesim, sansür, ses senkronu ve okunurluk kararını al. Final render veya dış platforma yayın için kullanıcı talimatına göre ilerle.
 - Yerel üretim dosyalarını, ham medyayı, özel notları ve anahtarları Git'e ekleme. Bir bulut sağlayıcısına medya göndermeden veya ücretli üretim başlatmadan önce hangi içeriğin gideceğini ve tahmini maliyeti kontrol et. Kullanıcının açık yetkilendirmesini kullan.
 - Kod değişikliklerinde ağ gerektirmeyen sentetik demoyu doğrula. Gerçek Whisper, Topview, Playwright veya HyperFrames testi yapılmadıysa o entegrasyonu doğrulanmış diye sunma.
+
+
+## Blender + Higgsfield ajan yönlendirmesi
+
+İstek **kodla 3D/video animasyonu, Blender MCP, Codex bağlantısı, Higgsfield, ürün-patlatma, saat/kamera, vinç/apartman veya video modellerine alternatif animasyon** hakkındaysa, ana kurgu sürecine başlamadan önce:
+
+1. `integrations/blender-higgsfield/AGENTS.md`
+2. `integrations/blender-higgsfield/AGENT-RUNBOOK.md`
+3. `integrations/blender-higgsfield/docs/VIDEO-ENVANTER.md`
+4. `integrations/blender-higgsfield/docs/ACCEPTANCE.md`
+
+dosyalarını oku. Kurulum tespiti için **entegrasyon klasöründe** `python scripts/doctor.py --json` çalıştır. Offline tanılama MCP'nin gerçekten bağlı olduğunu **kanıtlamaz**; canlı bağlantıyı salt-okunur MCP çağrısıyla ayrıca doğrula. Bulut modelleri için OAuth ve hesap onayını kullanıcı tamamlar; tahmini kredi/maliyet ve izin olmadan ücretli üretime geçme. Önce küçük ücretsiz önizleme, sonra kullanıcı incelemesi, sonra final. Ana atölyenin mevcut iş güvenliği ve onay protokolü geçerli kalır.
