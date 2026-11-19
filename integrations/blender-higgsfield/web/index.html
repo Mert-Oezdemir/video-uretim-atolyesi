@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>KOD İLE SİNEMA — Vinç ve Apartman</title>
+  <style>
+    :root {color-scheme:dark;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:#0b1120;color:#f1f6ff;display:grid;grid-template-rows:auto 1fr auto}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 5vw;gap:16px}
+    .brand{font-size:13px;font-weight:800;letter-spacing:.2em}
+    .tag{font-size:11px;letter-spacing:.15em;color:#8fbad6;text-transform:uppercase}
+    main{min-height:60vh;display:grid;place-items:center;padding:10px 18px 25px}
+    .scene{width:min(100%,1040px);height:min(72vh,680px);min-height:390px;border:1px solid #ffffff18;border-radius:16px;overflow:hidden;position:relative;background:#121a2d;box-shadow:0 25px 80px #0008}
+    canvas{display:block;width:100%;height:100%}
+    .overlay{position:absolute;inset:24px 24px auto;display:flex;justify-content:space-between;pointer-events:none}
+    .overlay .top{font-size:10px;letter-spacing:.18em;color:#dbe8f6}
+    .overlay .counter{font-size:10px;font-variant-numeric:tabular-nums;color:#fff9}
+    .bottom{position:absolute;left:24px;right:24px;bottom:22px;pointer-events:none}
+    .bottom h1{font-size:clamp(20px,4vw,40px);letter-spacing:-.05em;line-height:1.06;margin:6px 0}
+    .bottom p{color:#dfedffb4;margin:0;font-size:12px}
+    footer{padding:10px 5vw 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+    button{border:1px solid #6c8dae70;color:#eff5ff;background:#22334a;padding:11px 18px;border-radius:9px;font-weight:600;cursor:pointer}
+    button:hover{background:#304762}
+    .info{font-size:12px;color:#9aafc8;margin-left:8px}
+    @media(max-width:550px){header{padding:14px 18px}.scene{min-height:520px;height:68vh}.overlay{inset:18px 18px auto}.bottom{left:18px;bottom:18px}}
+  </style>
+</head>
+<body>
+  <header><div class="brand">CODE / CINEMA</div><div class="tag">HTML + CANVAS • KREDİ 0</div></header>
+  <main>
+    <section class="scene" aria-label="Vinç ve apartman katlarının animasyonu">
+      <canvas id="canvas" aria-label="Kodla oluşturulmuş stilize apartman inşaatı"></canvas>
+      <div class="overlay"><span class="top">PROCEDURAL MOTION / DEMO</span><span id="clock" class="counter">00:00 / 00:16</span></div>
+      <div class="bottom"><div class="top tag">HİÇBİR VİDEO MODELİ KULLANILMADI</div><h1>Şehir kat kat<br>inşa ediliyor.</h1><p>Vinçler · toz · kamera hareketi · JavaScript animasyonu</p></div>
+    </section>
+  </main>
+  <footer>
+    <button id="toggle" type="button">Duraklat</button>
+    <button id="reset" type="button">Başa al</button>
+    <button id="save" type="button">PNG kareyi kaydet</button>
+    <span class="info">Yerel çalışır, dış servis çağrısı yoktur.</span>
+  </footer>
+  <script>
+    "use strict";
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+    const clock = document.querySelector("#clock");
+    const toggle = document.querySelector("#toggle");
+    const DURATION = 16;
+    let width = 900, height = 560, time = 0, playing = true, last = 0;
+
+    function resize(){
+      const rect=canvas.getBoundingClientRect();
+      width=Math.max(1,rect.width);height=Math.max(1,rect.height);
+      const dpr=Math.min(window.devicePixelRatio||1,2);
+      canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      draw();
+    }
+    const lerp=(a,b,t)=>a+(b-a)*t;
+    const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
+    const rand=n=>(Math.sin(n*91.719+4.32)*43758.5453)%1;
+    const easeOut=t=>1-Math.pow(1-smooth(t),2);
+
+    function building(x,base,scale,alpha,seed){
+      const bw=58*scale,bh=125*scale;
+      ctx.globalAlpha=alpha;
+      ctx.fillStyle="#142235";ctx.fillRect(x,base-bh,bw,bh);
+      ctx.fillStyle="#1b3146";
+      for(let r=0;r<5;r++)for(let c=0;c<3;c++){
+        const n=Math.abs(rand(seed+r*11+c*7));
+        ctx.fillStyle=n>.47?"#e1b879":"#34445a";
+        ctx.fillRect(x+8*scale+c*17*scale,base-bh+13*scale+r*22*scale,10*scale,12*scale);
+      }
+      ctx.globalAlpha=1;
+    }
+
+    function apartment(x,y,w,h,index){
+      // Each storey is one procedurally placed slab with balconies and laundry.
+      ctx.fillStyle="#e1d5c2";ctx.fillRect(x,y,w,h);
+      ctx.fillStyle="#b5a99a";ctx.fillRect(x+w-11,y,11,h);
+      ctx.fillStyle="#bcb1a5";ctx.fillRect(x,y+h-7,w+9,9);
+      ctx.fillStyle="#cabdac";ctx.fillRect(x-4,y-6,w+8,9);
+      const winCount=3;
+      for(let j=0;j<winCount;j++){
+        const wx=x+17+j*(w-30)/3;
+        ctx.fillStyle="#335263";ctx.fillRect(wx,y+15,21,h-28);
+        ctx.fillStyle="#6e8b93";ctx.fillRect(wx+10,y+15,2,h-28);
+        ctx.fillStyle="#c1a993";ctx.fillRect(wx-4,y+h-23,32,4);
+        ctx.fillStyle="#7c726c";
+        for(let rail=0;rail<4;rail++)ctx.fillRect(wx+rail*8-2,y+h-21,2,13);
+        if((index+j)%4===0){
+          ctx.strokeStyle="#f3e9d8";ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(wx-2,y+h-27);ctx.lineTo(wx+23,y+h-28);ctx.stroke();
+          ctx.fillStyle="#fbefe4";ctx.fillRect(wx+3,y+h-27,13,12);
+        }
+      }
+      ctx.fillStyle="#5e6066";ctx.fillRect(x-2,y+h-5,w+11,3);
+    }
+
+    function draw(){
+      const w=width,h=height;
+      const sky=ctx.createLinearGradient(0,0,0,h);
+      sky.addColorStop(0,"#101b3b");sky.addColorStop(.5,"#ba7080");sky.addColorStop(1,"#eab68e");
+      ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+      const sunX=w*.69,sunY=h*.33;
+      const glow=ctx.createRadialGradient(sunX,sunY,5,sunX,sunY,w*.45);
+      glow.addColorStop(0,"#ffd4a875");glow.addColorStop(1,"#f3a77c00");
+      ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle="#ffe8b9";ctx.beginPath();ctx.arc(sunX,sunY,Math.min(w,h)*.068,0,Math.PI*2);ctx.fill();
+      const drift=Math.sin(time*.24)*w*.022;
+      for(let i=0;i<14;i++){
+        const x=(i*w/12+drift*(((i%3)+1)*.4))-35;
+        building(x,h*.78,1.2+(i%4)*.25,.35+(i%3)*.11,i);
+      }
+      const ground=h*.76;
+      ctx.fillStyle="#574852";ctx.fillRect(0,ground,w,h-ground);
+      for(let i=0;i<85;i++){
+        let x=Math.abs(rand(i+3))*w,y=ground+Math.abs(rand(i+100))*h*.24;
+        ctx.fillStyle=i%3===0?"#b8847a40":"#141f3340";
+        ctx.fillRect(x,y,24+(i%7)*7,2);
+      }
+      const scale=Math.min(w/850,h/600)*1.15;
+      const bx=w*.45-84*scale,fw=168*scale,fh=61*scale,base=ground+7;
+      const floors=6;
+      // Foundation and lower floors
+      ctx.fillStyle="#4a4651";ctx.fillRect(bx-16*scale,base,fw+45*scale,13*scale);
+      for(let i=0;i<floors;i++){
+        const target=base-(i+1)*fh;
+        const start=2+i*1.45,progress=easeOut((time-start)/1.4);
+        if(time<start)continue;
+        const from=-fh*2 - (i%2)*70;
+        const yy=lerp(from,target,progress);
+        apartment(bx,yy,fw,fh,i);
+      }
+      // Roof slab lands last.
+      if(time>11){
+        const p=easeOut((time-11)/1.4);
+        ctx.fillStyle="#d8c9b5";
+        ctx.fillRect(bx-7*scale,lerp(-80,base-floors*fh-13*scale,p),fw+18*scale,15*scale);
+      }
+      // Crane: mast, diagonal braces, boom and dangling hook.
+      const cx=w*.78,top=h*.13;
+      ctx.strokeStyle="#324858";ctx.lineWidth=5*scale;
+      ctx.beginPath();ctx.moveTo(cx,ground);ctx.lineTo(cx,top);ctx.stroke();
+      ctx.lineWidth=2*scale;
+      for(let y=top;y<ground-20;y+=27*scale){
+        ctx.beginPath();ctx.moveTo(cx-13*scale,y);ctx.lineTo(cx+13*scale,y+24*scale);
+        ctx.moveTo(cx+13*scale,y);ctx.lineTo(cx-13*scale,y+24*scale);ctx.stroke();
+      }
+      ctx.strokeStyle="#243847";ctx.lineWidth=7*scale;
+      ctx.beginPath();ctx.moveTo(cx-w*.40,top);ctx.lineTo(cx+w*.12,top);ctx.stroke();
+      ctx.lineWidth=2*scale;
+      for(let i=0;i<12;i++){
+        const xx=cx-w*.4+i*w*.045;
+        ctx.beginPath();ctx.moveTo(xx,top-5);ctx.lineTo(xx+w*.044,top+16);ctx.stroke();
+      }
+      const active=Math.min(floors-1,Math.max(0,Math.floor((time-2)/1.45)));
+      const stage=(time-2-active*1.45)/1.45;
+      const hookX=bx+fw*.55;
+      const hookY=lerp(top+35,base-(active+1)*fh-12*scale,easeOut(stage));
+      ctx.strokeStyle="#e7d9c4";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(hookX,top);ctx.lineTo(hookX,Math.max(top+20,hookY-8));ctx.stroke();
+      ctx.fillStyle="#e0ab5f";ctx.fillRect(hookX-8,Math.max(top+20,hookY-8),16,10);
+      // Dust puff on each landing, deterministic particle positions.
+      for(let i=0;i<floors;i++){
+        const hit=3.4+i*1.45,age=time-hit;
+        if(age<0||age>2.2)continue;
+        const alpha=(1-age/2.2)*.45;
+        for(let p=0;p<22;p++){
+          const rx=Math.sin(p*3.78+i)*((age*20+p*3)*scale);
+          const ry=Math.cos(p*1.99+i)*age*16*scale-5*scale;
+          const r=(3+p%6)*scale*(.5+age*.5);
+          ctx.fillStyle="rgba(223,201,177,"+alpha+")";
+          ctx.beginPath();ctx.arc(bx+fw*.5+rx,base-(i+1)*fh+ry,r,0,Math.PI*2);ctx.fill();
+        }
+      }
+      // Atmospheric vignette.
+      const vignette=ctx.createRadialGradient(w*.5,h*.45,h*.18,w*.5,h*.45,w*.78);
+      vignette.addColorStop(0,"#00000000");vignette.addColorStop(1,"#050b25a8");
+      ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);
+    }
+
+    function tick(stamp){
+      if(!last)last=stamp;
+      const elapsed=Math.min(.05,(stamp-last)/1000);last=stamp;
+      if(playing)time=(time+elapsed)%DURATION;
+      draw();
+      const secs=String(Math.floor(time)).padStart(2,"0");
+      clock.textContent="00:"+secs+" / 00:16";
+      requestAnimationFrame(tick);
+    }
+    document.querySelector("#toggle").addEventListener("click",()=>{
+      playing=!playing;toggle.textContent=playing?"Duraklat":"Oynat";
+    });
+    document.querySelector("#reset").addEventListener("click",()=>{time=0;draw();});
+    document.querySelector("#save").addEventListener("click",()=>{
+      const a=document.createElement("a");a.download="kodla-animasyon.png";
+      a.href=canvas.toDataURL("image/png");a.click();
+    });
+    window.addEventListener("resize",resize);
+    resize();requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
