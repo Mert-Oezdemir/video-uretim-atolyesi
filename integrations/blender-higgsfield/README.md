@@ -34,6 +34,7 @@ Bir ajana verilebilecek başlangıç görevi:
 - [Git](https://git-scm.com/downloads)
 - [uv ve uvx](https://docs.astral.sh/uv/getting-started/installation/)
 - [Codex CLI](https://developers.openai.com/codex/cli) (MCP kullanımı için)
+- [Windows ayrıntılı kurulum ve kontrol rehberi](docs/INSTALL-WINDOWS.md)
 
 Windows'ta uv: `winget install --id=astral-sh.uv -e`. Kurulumdan sonra yeni terminal aç.
 
