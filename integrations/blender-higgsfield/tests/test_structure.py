@@ -12,7 +12,7 @@ class KitSmokeTests(unittest.TestCase):
         tree = ast.parse(code)
         names = {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
         self.assertTrue({"build_scene", "explode", "main"} <= names)
-        self.assertIn("scene.frame_end = 720", code)
+        self.assertIn("scene.frame_start, scene.frame_end = 1, 720", code)
 
     def test_web_animation_is_local_only(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
