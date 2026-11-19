@@ -20,12 +20,12 @@ TOOLS = ("python", "git", "uv", "uvx", "codex", "blender", "ffmpeg", "ffprobe")
 
 
 def command_status(name):
-    path = shutil.which(name)
+    path = sys.executable if name == "python" else shutil.which(name)
     if not path:
         return {"status": "MISSING", "path": None, "version": None}
     try:
         result = subprocess.run(
-            [path, "--version"],
+            [path, "-version" if name in ("ffmpeg", "ffprobe") else "--version"],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, encoding="utf-8", errors="replace",
             timeout=5, check=False,
