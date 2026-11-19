@@ -12,6 +12,14 @@ Windows ve Türkçe ekran anlatımları için yerel video üretim başlangıç k
 
 Örnek tarayıcı kaydından iki saniyelik duraklama çıkarılır. HyperFrames kartı ve Türkçe altyazı eklenerek 1280 × 720, 30 fps MP4 üretilir. Demo sessizdir. Karşılaştırma kartındaki değerler örnektir.
 
+
+## Blender / MCP / Higgsfield ile koddan animasyon (opsiyonel)
+
+[Blender + Codex + Higgsfield entegrasyonu](integrations/blender-higgsfield/README.md), video modelleri yerine 3D Python/Cycles veya HTML/Canvas ile animasyon üretebilmek için eklendi. Depoda Windows/macOS/Linux MCP kurulum betikleri, ücretsiz 30 saniyelik örnek Blender sahnesi, sıfır bağımlılıklı tarayıcı demosu ve Higgsfield hesap bağlantısı rehberi var.
+
+**Ajanlar:** Önce [ajan çalışma kitabını](integrations/blender-higgsfield/AGENT-RUNBOOK.md), [video teknoloji envanterini](integrations/blender-higgsfield/docs/VIDEO-ENVANTER.md) ve [kabul ölçütlerini](integrations/blender-higgsfield/docs/ACCEPTANCE.md) okuyun. GitHub'daki dosyaların varlığı, Blender uygulamasının veya bir bulut hesabının bilgisayarda kurulduğu anlamına gelmez; gerçek ortamı `python integrations/blender-higgsfield/scripts/doctor.py --json` ile denetleyin. Bu kontrol de canlı MCP bağlantısını kanıtlamaz.
+
+
 ## İlk deneme
 
 Python 3.10 veya üzeri ve `PATH` üzerinde `ffmpeg` ile `ffprobe` gerekir. FFmpeg dağıtımında `libx264` veya `libopenh264` kodlayıcısı olmalı. Kurulumdan sonra yeni bir PowerShell aç. [Python](https://www.python.org/downloads/windows/) · [FFmpeg Windows indirme bağlantıları](https://ffmpeg.org/download.html#build-windows)
