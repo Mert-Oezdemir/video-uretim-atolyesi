@@ -6,6 +6,28 @@ Videodaki yaklaşımı mevcut Video Üretim Atölyesi deposuna ekleyen bağıms�
 
 **Sınır:** Blender/MCP/Codex yerelde kurulur. Higgsfield, Seedance, Kling, Nano Banana ve ElevenLabs bulut hizmetleridir; GitHub'a indirilemez. Bağlantı hesabının yetkilendirilmesi ve kredileri ayrı gereklidir.
 
+## Ajan / Codex için ilk okuma (önemli)
+
+Bu depoyu bir ajana verirsen göreve **önce** şu dosyalardan başlamasını söyle:
+
+1. `../../AGENTS.md` (ana atölye kuralları)
+2. `AGENTS.md` (entegrasyonun güvenlik kuralları)
+3. `AGENT-RUNBOOK.md` (hangi görevde hangi aracı nasıl denetleyeceği)
+4. `docs/VIDEO-ENVANTER.md` (videodaki araçların hangisi hazır, hangisi fikir)
+5. `docs/ACCEPTANCE.md` (kurulu/çalışır demek için gerekli kanıtlar)
+
+Kurulumun gerçekten yapılıp yapılmadığını önce şu komutla kontrol et:
+
+~~~bash
+python scripts/doctor.py --json
+~~~
+
+**Bunlar önemli farklardır:** Ajanın gördüğü GitHub dosyaları ≠ bilgisayardaki uygulama kurulumu. `codex mcp list` kaydı ≠ çalışır Blender bağlantısı. Statik CI testi ≠ gerçek Blender render'ı. Kredi harcamayan kurulum betiği ≠ Higgsfield hesabının bağlanması.
+
+Bir ajana verilebilecek başlangıç görevi:
+
+> AGENTS.md ve AGENT-RUNBOOK.md dosyalarını oku, doctor raporu üret, resmî Blender MCP'nin gerçekten çalışıp çalışmadığını salt-okunur bağlantı testiyle kontrol et. Sorun varsa hangi adımın kullanıcıdan beklendiğini açıkça yaz. Ücretli üretim yapmadan önce ücretsiz tek kare önizleme göster.
+
 ## Gereksinimler
 
 - [Blender 5.1 veya üzeri](https://www.blender.org/download/) (resmî MCP için)
